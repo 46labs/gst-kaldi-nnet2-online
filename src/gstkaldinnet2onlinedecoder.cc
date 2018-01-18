@@ -1214,9 +1214,13 @@ static void gst_kaldinnet2onlinedecoder_final_result(
     *num_words = full_final_result.nbest_results[0].words.size();
 
     if (hyp_length > 0) {
-      GstBuffer *buffer = gst_buffer_new_and_alloc(hyp_length + 1);
-      gst_buffer_fill(buffer, 0, best_transcript.c_str(), hyp_length);
-      gst_buffer_memset(buffer, hyp_length, '\n', 1);
+      static const std::string log_prefix = "Final:";
+      static const guint log_prefix_length = log_prefix.length();
+
+      GstBuffer *buffer = gst_buffer_new_and_alloc(log_prefix_length + hyp_length + 1);
+      gst_buffer_fill(buffer, 0, log_prefix.c_str(), log_prefix_length);
+      gst_buffer_fill(buffer, log_prefix_length, best_transcript.c_str(), hyp_length);
+      gst_buffer_memset(buffer, log_prefix_length + hyp_length, '\n', 1);
       gst_pad_push(filter->srcpad, buffer);
 
       /* Emit a signal for applications. */
@@ -1239,7 +1243,18 @@ static void gst_kaldinnet2onlinedecoder_partial_result(
   GetLinearSymbolSequence(lat, &alignment, &words, &weight);
   std::string transcript = gst_kaldinnet2onlinedecoder_words_to_string(filter, words);
   GST_DEBUG_OBJECT(filter, "Partial: %s", transcript.c_str());
-  if (transcript.length() > 0) {
+
+	guint transcript_length = transcript.length();
+  if (transcript_length > 0) {
+      static const std::string log_prefix = "Partial:";
+      static const guint log_prefix_length = log_prefix.length();
+
+      GstBuffer *buffer = gst_buffer_new_and_alloc(log_prefix_length + transcript_length + 1);
+      gst_buffer_fill(buffer, 0, log_prefix.c_str(), log_prefix_length);
+      gst_buffer_fill(buffer, log_prefix_length, transcript.c_str(), transcript_length);
+      gst_buffer_memset(buffer, log_prefix_length + transcript_length, '\n', 1);
+      gst_pad_push(filter->srcpad, buffer);
+
     /* Emit a signal for applications. */
     g_signal_emit(filter,
                   gst_kaldinnet2onlinedecoder_signals[PARTIAL_RESULT_SIGNAL], 0,
