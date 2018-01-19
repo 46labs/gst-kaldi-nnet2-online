@@ -1214,15 +1214,6 @@ static void gst_kaldinnet2onlinedecoder_final_result(
     *num_words = full_final_result.nbest_results[0].words.size();
 
     if (hyp_length > 0) {
-      static const std::string log_prefix = "Final:";
-      static const guint log_prefix_length = log_prefix.length();
-
-      GstBuffer *buffer = gst_buffer_new_and_alloc(log_prefix_length + hyp_length + 1);
-      gst_buffer_fill(buffer, 0, log_prefix.c_str(), log_prefix_length);
-      gst_buffer_fill(buffer, log_prefix_length, best_transcript.c_str(), hyp_length);
-      gst_buffer_memset(buffer, log_prefix_length + hyp_length, '\n', 1);
-      gst_pad_push(filter->srcpad, buffer);
-
       /* Emit a signal for applications. */
       g_signal_emit(filter, gst_kaldinnet2onlinedecoder_signals[FINAL_RESULT_SIGNAL], 0, best_transcript.c_str());
 
@@ -1230,6 +1221,16 @@ static void gst_kaldinnet2onlinedecoder_final_result(
           gst_kaldinnet2onlinedecoder_full_final_result_to_json(filter, full_final_result);
       GST_DEBUG_OBJECT(filter, "Final JSON: %s", full_final_result_as_json.c_str());
       g_signal_emit(filter, gst_kaldinnet2onlinedecoder_signals[FULL_FINAL_RESULT_SIGNAL], 0, full_final_result_as_json.c_str());
+
+      const std::string log_prefix = "Final:";
+      const guint log_prefix_length = log_prefix.length();
+      guint final_result_length = full_final_result_as_json.length();
+
+      GstBuffer *buffer = gst_buffer_new_and_alloc(log_prefix_length + final_result_length + 1);
+      gst_buffer_fill(buffer, 0, log_prefix.c_str(), log_prefix_length);
+      gst_buffer_fill(buffer, log_prefix_length, full_final_result_as_json.c_str(), final_result_length);
+      gst_buffer_memset(buffer, log_prefix_length + final_result_length, '\n', 1);
+      gst_pad_push(filter->srcpad, buffer);
 
     }
   }
