@@ -1245,7 +1245,7 @@ static void gst_kaldinnet2onlinedecoder_partial_result(
   std::string transcript = gst_kaldinnet2onlinedecoder_words_to_string(filter, words);
   GST_DEBUG_OBJECT(filter, "Partial: %s", transcript.c_str());
 
-	guint transcript_length = transcript.length();
+  guint transcript_length = transcript.length();
   if (transcript_length > 0) {
       static const std::string log_prefix = "Partial:";
       static const guint log_prefix_length = log_prefix.length();
